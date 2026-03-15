@@ -21,7 +21,7 @@ from discord.ext import commands
 
 from thetamax import options as opts
 from thetamax.config import config
-from thetamax.market import is_market_open, today_iso, today_market_close
+from thetamax.market import today_market_close
 
 if TYPE_CHECKING:
     from bot import ThetaMaxBot
