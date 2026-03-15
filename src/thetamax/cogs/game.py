@@ -287,7 +287,7 @@ class GameCog(commands.Cog):
             for uid, pnl_delta in player_pnls.items():
                 player = player_map.get(uid)
                 if player:
-                    net = player["bankroll"] - config.STARTING_BANKROLL
+                    net = player["bankroll"] - game["bankroll"]
                     await self.bot.db.upsert_season_score(
                         season["id"], uid, player["user_name"], net
                     )
@@ -313,7 +313,7 @@ class GameCog(commands.Cog):
         lines = []
         for i, p in enumerate(leaderboard):
             medal = medals[i] if i < len(medals) else f"{i + 1}."
-            net = p["bankroll"] - config.STARTING_BANKROLL
+            net = p["bankroll"] - game["bankroll"]
             sign = "+" if net >= 0 else ""
             lines.append(
                 f"{medal} **{p['user_name']}** — "
