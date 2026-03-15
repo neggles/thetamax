@@ -4,7 +4,6 @@ from datetime import time, timedelta
 from unittest.mock import patch
 
 import pytest
-import pytz
 
 from thetamax.market import (
     ET,
