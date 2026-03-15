@@ -11,6 +11,7 @@ Provides the ``/game`` command group:
 from __future__ import annotations
 
 import logging
+import asyncio
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING
 
@@ -242,34 +243,45 @@ class GameCog(commands.Cog):
         game_id = game["id"]
         guild_id = game["guild_id"]
 
-        # Fetch all open positions
-        positions = await self.bot.db.get_all_open_positions_for_game(game_id)
-        player_pnls: dict[str, float] = {}
+        # Ensure that settlement for a given game_id is serialized within this process
+        settlement_locks = getattr(self, "_settlement_locks", None)
+        if settlement_locks is None:
+            settlement_locks = {}
+            self._settlement_locks = settlement_locks
+        lock = settlement_locks.get(game_id)
+        if lock is None:
+            lock = asyncio.Lock()
+            settlement_locks[game_id] = lock
 
-        for pos in positions:
-            pnl = opts.settlement_pnl(
-                option_type=pos["option_type"],
-                strike=pos["strike"],
-                quantity=pos["quantity"],
-                direction=pos["direction"],
-                entry_price=pos["entry_price"],
-                settlement_price=settlement_price,
-            )
-            await self.bot.db.settle_position(pos["id"], settlement_price, pnl)
-            uid = pos["user_id"]
-            player_pnls[uid] = player_pnls.get(uid, 0) + pnl
+        async with lock:
+            # Fetch all open positions
+            positions = await self.bot.db.get_all_open_positions_for_game(game_id)
+            player_pnls: dict[str, float] = {}
 
-        # Update player bankrolls
-        players = await self.bot.db.get_players(game_id)
-        player_map = {p["user_id"]: p for p in players}
-        for uid, pnl in player_pnls.items():
-            player = player_map.get(uid)
-            if player:
-                new_bankroll = player["bankroll"] + pnl
-                await self.bot.db.update_player_bankroll(player["id"], new_bankroll)
-                player_map[uid]["bankroll"] = new_bankroll
+            for pos in positions:
+                pnl = opts.settlement_pnl(
+                    option_type=pos["option_type"],
+                    strike=pos["strike"],
+                    quantity=pos["quantity"],
+                    direction=pos["direction"],
+                    entry_price=pos["entry_price"],
+                    settlement_price=settlement_price,
+                )
+                await self.bot.db.settle_position(pos["id"], settlement_price, pnl)
+                uid = pos["user_id"]
+                player_pnls[uid] = player_pnls.get(uid, 0) + pnl
 
-        # Update season scores if a season is active
+            # Update player bankrolls
+            players = await self.bot.db.get_players(game_id)
+            player_map = {p["user_id"]: p for p in players}
+            for uid, pnl in player_pnls.items():
+                player = player_map.get(uid)
+                if player:
+                    new_bankroll = player["bankroll"] + pnl
+                    await self.bot.db.update_player_bankroll(player["id"], new_bankroll)
+                    player_map[uid]["bankroll"] = new_bankroll
+
+            # Update season scores if a season is active
         season = await self.bot.db.get_active_season(guild_id)
         if season:
             for uid, pnl_delta in player_pnls.items():
