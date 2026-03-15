@@ -324,7 +324,7 @@ class TradingCog(commands.Cog):
         )
         embed.add_field(name="Contracts", value=str(qty), inline=True)
         embed.add_field(name="Premium/share", value=f"${option_price:,.2f}", inline=True)
-        total_cost = option_price * qty * config.CONTRACT_MULTIPLIER
+        total_cost = option_price * qty * opts.CONTRACT_MULTIPLIER
         embed.add_field(
             name="Total " + ("debit" if direction == "long" else "credit"),
             value=f"${total_cost:,.2f}",
