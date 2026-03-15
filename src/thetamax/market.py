@@ -59,6 +59,13 @@ def next_market_open() -> datetime:
     trading day's open).
     """
     n = now_et()
+    today_open = today_market_open()
+
+    # If it's a weekday and we're before today's market open, return today's open.
+    if n.weekday() < 5 and n < today_open:
+        return today_open
+
+    # Otherwise, return the next trading day's open (skipping weekends).
     candidate = n + timedelta(days=1)
     while candidate.weekday() >= 5:
         candidate += timedelta(days=1)
