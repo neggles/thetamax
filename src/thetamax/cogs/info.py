@@ -11,7 +11,6 @@ Slash commands:
 
 from __future__ import annotations
 
-import logging
 from typing import TYPE_CHECKING
 
 import discord
@@ -23,8 +22,6 @@ from thetamax.market import today_iso
 
 if TYPE_CHECKING:
     from bot import ThetaMaxBot
-
-logger = logging.getLogger(__name__)
 
 
 def _is_admin(interaction: discord.Interaction) -> bool:
