@@ -8,10 +8,8 @@ Provides the ``/game`` command group:
     /game status             – display current game info
 """
 
-from __future__ import annotations
-
-import logging
 import asyncio
+import logging
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING
 
@@ -24,7 +22,7 @@ from thetamax.config import config
 from thetamax.market import today_market_close
 
 if TYPE_CHECKING:
-    from bot import ThetaMaxBot
+    from thetamax.bot import ThetaMaxBot
 
 logger = logging.getLogger(__name__)
 
@@ -121,13 +119,9 @@ class GameCog(commands.Cog):
             )
             return
 
-        player_id = await self.bot.db.add_player(
-            game["id"], user_id, user_name, config.STARTING_BANKROLL
-        )
+        player_id = await self.bot.db.add_player(game["id"], user_id, user_name, config.STARTING_BANKROLL)
         if player_id is None:
-            await interaction.response.send_message(
-                "ℹ️  You've already joined this game!", ephemeral=True
-            )
+            await interaction.response.send_message("ℹ️  You've already joined this game!", ephemeral=True)
             return
 
         players = await self.bot.db.get_players(game["id"])
@@ -141,9 +135,7 @@ class GameCog(commands.Cog):
     # /game begin
     # ------------------------------------------------------------------
 
-    @game_group.command(
-        name="begin", description="(Admin) Open trading for the current game"
-    )
+    @game_group.command(name="begin", description="(Admin) Open trading for the current game")
     async def game_begin(self, interaction: discord.Interaction) -> None:
         if not _is_admin(interaction):
             await interaction.response.send_message(
@@ -154,14 +146,10 @@ class GameCog(commands.Cog):
         guild_id = str(interaction.guild_id)
         game = await self.bot.db.get_active_game(guild_id)
         if not game:
-            await interaction.response.send_message(
-                "❌ No pending game found.", ephemeral=True
-            )
+            await interaction.response.send_message("❌ No pending game found.", ephemeral=True)
             return
         if game["status"] == "active":
-            await interaction.response.send_message(
-                "⚠️  The game is already active.", ephemeral=True
-            )
+            await interaction.response.send_message("⚠️  The game is already active.", ephemeral=True)
             return
 
         close_dt = today_market_close()
@@ -200,9 +188,7 @@ class GameCog(commands.Cog):
         description="(Admin) Settle all positions at the given closing price",
     )
     @app_commands.describe(price="Closing price of the underlying (e.g. 548.72)")
-    async def game_settle(
-        self, interaction: discord.Interaction, price: float
-    ) -> None:
+    async def game_settle(self, interaction: discord.Interaction, price: float) -> None:
         if not _is_admin(interaction):
             await interaction.response.send_message(
                 "❌ You need the **ThetaMax Admin** role.", ephemeral=True
@@ -212,9 +198,7 @@ class GameCog(commands.Cog):
         guild_id = str(interaction.guild_id)
         game = await self.bot.db.get_active_game(guild_id)
         if not game:
-            await interaction.response.send_message(
-                "❌ No active game to settle.", ephemeral=True
-            )
+            await interaction.response.send_message("❌ No active game to settle.", ephemeral=True)
             return
 
         await interaction.response.defer()  # settlement takes a moment
@@ -288,9 +272,7 @@ class GameCog(commands.Cog):
                 player = player_map.get(uid)
                 if player:
                     net = player["bankroll"] - game["bankroll"]
-                    await self.bot.db.upsert_season_score(
-                        season["id"], uid, player["user_name"], net
-                    )
+                    await self.bot.db.upsert_season_score(season["id"], uid, player["user_name"], net)
 
         # Mark game as settled
         await self.bot.db.update_game(
@@ -315,10 +297,7 @@ class GameCog(commands.Cog):
             medal = medals[i] if i < len(medals) else f"{i + 1}."
             net = p["bankroll"] - game["bankroll"]
             sign = "+" if net >= 0 else ""
-            lines.append(
-                f"{medal} **{p['user_name']}** — "
-                f"${p['bankroll']:,.2f} ({sign}${net:,.2f})"
-            )
+            lines.append(f"{medal} **{p['user_name']}** — " f"${p['bankroll']:,.2f} ({sign}${net:,.2f})")
         embed.add_field(name="Rankings", value="\n".join(lines) or "_No players_", inline=False)
         embed.set_footer(text=f"Game #{game_id}")
 
@@ -342,9 +321,7 @@ class GameCog(commands.Cog):
             return
 
         players = await self.bot.db.get_players(game["id"])
-        status_emoji = {"pending": "⏳", "active": "✅", "settling": "⌛"}.get(
-            game["status"], "❓"
-        )
+        status_emoji = {"pending": "⏳", "active": "✅", "settling": "⌛"}.get(game["status"], "❓")
 
         embed = discord.Embed(
             title=f"{status_emoji} Game #{game['id']} — {game['underlying']}",
@@ -352,9 +329,7 @@ class GameCog(commands.Cog):
         )
         embed.add_field(name="Status", value=game["status"].capitalize(), inline=True)
         embed.add_field(name="Underlying", value=game["underlying"], inline=True)
-        embed.add_field(
-            name="Bankroll", value=f"${game['bankroll']:,.0f}", inline=True
-        )
+        embed.add_field(name="Bankroll", value=f"${game['bankroll']:,.0f}", inline=True)
         embed.add_field(
             name=f"Players ({len(players)})",
             value=", ".join(p["user_name"] for p in players) or "_None yet_",

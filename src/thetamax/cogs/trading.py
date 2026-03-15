@@ -10,15 +10,14 @@ Slash commands:
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING
 
 import discord
 from discord import app_commands
 from discord.ext import commands
 
 from thetamax import options as opts
-from thetamax.config import config
-from thetamax.market import is_market_open, today_iso
+from thetamax.market import today_iso
 
 if TYPE_CHECKING:
     from bot import ThetaMaxBot
@@ -81,19 +80,17 @@ class TradingCog(commands.Cog):
     # /close
     # ------------------------------------------------------------------
 
-    @app_commands.command(name="close", description="Close an open position at current market price")
+    @app_commands.command(
+        name="close", description="Close an open position at current market price"
+    )
     @app_commands.describe(position_id="Position ID (shown in /portfolio)")
-    async def close_position(
-        self, interaction: discord.Interaction, position_id: int
-    ) -> None:
+    async def close_position(self, interaction: discord.Interaction, position_id: int) -> None:
         guild_id = str(interaction.guild_id)
         user_id = str(interaction.user.id)
 
         game = await self.bot.db.get_active_game(guild_id)
         if not game or game["status"] != "active":
-            await interaction.response.send_message(
-                "❌ No active game right now.", ephemeral=True
-            )
+            await interaction.response.send_message("❌ No active game right now.", ephemeral=True)
             return
 
         player = await self.bot.db.get_player(game["id"], user_id)
@@ -174,16 +171,12 @@ class TradingCog(commands.Cog):
 
         game = await self.bot.db.get_active_game(guild_id)
         if not game:
-            await interaction.response.send_message(
-                "❌ No active game.", ephemeral=True
-            )
+            await interaction.response.send_message("❌ No active game.", ephemeral=True)
             return
 
         player = await self.bot.db.get_player(game["id"], user_id)
         if not player:
-            await interaction.response.send_message(
-                "❌ You're not in this game.", ephemeral=True
-            )
+            await interaction.response.send_message("❌ You're not in this game.", ephemeral=True)
             return
 
         positions = await self.bot.db.get_positions(player["id"])

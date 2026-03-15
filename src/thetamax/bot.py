@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from datetime import datetime, timezone
 
 import discord
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -71,9 +70,7 @@ class ThetaMaxBot(commands.Bot):
     async def on_ready(self) -> None:
         logger.info("Logged in as %s (ID: %s)", self.user, self.user.id if self.user else "?")
         await self.change_presence(
-            activity=discord.Activity(
-                type=discord.ActivityType.watching, name="the options market"
-            )
+            activity=discord.Activity(type=discord.ActivityType.watching, name="the options market")
         )
 
     # ------------------------------------------------------------------
@@ -118,12 +115,12 @@ class ThetaMaxBot(commands.Bot):
                 )
                 if isinstance(channel, discord.TextChannel):
                     await channel.send(msg)
-                logger.warning("Could not fetch closing price for %s (game #%d)", underlying, game["id"])
+                logger.warning(
+                    "Could not fetch closing price for %s (game #%d)", underlying, game["id"]
+                )
                 continue
 
-            logger.info(
-                "Settling game #%d (%s) at %.4f", game["id"], underlying, price
-            )
+            logger.info("Settling game #%d (%s) at %.4f", game["id"], underlying, price)
             await game_cog.settle_game(  # type: ignore[attr-defined]
                 game, price, channel=channel if isinstance(channel, discord.TextChannel) else None
             )

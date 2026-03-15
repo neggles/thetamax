@@ -21,7 +21,7 @@ from thetamax.config import config
 from thetamax.market import today_iso
 
 if TYPE_CHECKING:
-    from thetamax.__main__ import ThetaMaxBot
+    from thetamax.bot import ThetaMaxBot
 
 
 def _is_admin(interaction: discord.Interaction) -> bool:
@@ -45,9 +45,7 @@ class InfoCog(commands.Cog):
         guild_id = str(interaction.guild_id)
         game = await self.bot.db.get_active_game(guild_id)
         if not game:
-            await interaction.response.send_message(
-                "❌ No active game.", ephemeral=True
-            )
+            await interaction.response.send_message("❌ No active game.", ephemeral=True)
             return
 
         players = await self.bot.db.get_players(game["id"])
@@ -68,8 +66,7 @@ class InfoCog(commands.Cog):
             net = p["bankroll"] - game["bankroll"]
             sign = "+" if net >= 0 else ""
             lines.append(
-                f"{medal} **{p['user_name']}** — "
-                f"${p['bankroll']:,.2f} ({sign}${net:,.2f})"
+                f"{medal} **{p['user_name']}** — " f"${p['bankroll']:,.2f} ({sign}${net:,.2f})"
             )
         embed.description = "\n".join(lines)
         embed.set_footer(text=f"Starting bankroll: ${game['bankroll']:,.0f}")
@@ -108,7 +105,11 @@ class InfoCog(commands.Cog):
         )
         embed.add_field(name="Bid", value=f"${bid}", inline=True)
         embed.add_field(name="Ask", value=f"${ask}", inline=True)
-        embed.add_field(name="Volume", value=f"{volume:,}" if isinstance(volume, int) else str(volume), inline=True)
+        embed.add_field(
+            name="Volume",
+            value=f"{volume:,}" if isinstance(volume, int) else str(volume),
+            inline=True,
+        )
         await interaction.followup.send(embed=embed)
 
     # ------------------------------------------------------------------
@@ -194,7 +195,9 @@ class InfoCog(commands.Cog):
             description="\n".join(lines),
             colour=discord.Colour.blue(),
         )
-        embed.set_footer(text=f"Underlying last: {atm_str} | Showing up to {near_strikes} strikes each side of ATM")
+        embed.set_footer(
+            text=f"Underlying last: {atm_str} | Showing up to {near_strikes} strikes each side of ATM"
+        )
         await interaction.followup.send(embed=embed)
 
     # ------------------------------------------------------------------
@@ -239,9 +242,7 @@ class InfoCog(commands.Cog):
         guild_id = str(interaction.guild_id)
         season = await self.bot.db.get_active_season(guild_id)
         if not season:
-            await interaction.response.send_message(
-                "❌ No active season.", ephemeral=True
-            )
+            await interaction.response.send_message("❌ No active season.", ephemeral=True)
             return
 
         scores = await self.bot.db.get_season_scores(season["id"])
@@ -268,9 +269,7 @@ class InfoCog(commands.Cog):
         guild_id = str(interaction.guild_id)
         season = await self.bot.db.get_active_season(guild_id)
         if not season:
-            await interaction.response.send_message(
-                "❌ No active season.", ephemeral=True
-            )
+            await interaction.response.send_message("❌ No active season.", ephemeral=True)
             return
 
         scores = await self.bot.db.get_season_scores(season["id"])

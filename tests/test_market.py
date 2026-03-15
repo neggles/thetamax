@@ -3,8 +3,6 @@
 from datetime import time, timedelta
 from unittest.mock import patch
 
-import pytest
-
 from thetamax.market import (
     ET,
     MARKET_CLOSE_TIME,

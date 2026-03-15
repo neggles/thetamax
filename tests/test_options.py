@@ -12,6 +12,14 @@ from thetamax.options import (
 )
 
 
+def test_contract_multiplier_applied():
+    # Example: Buy 1 call at strike 500, pay $2.00 premium, settle at 510
+    # Intrinsic = 10, P&L = (10 - 2) * 1 * CONTRACT_MULTIPLIER
+    expected_pnl = (10.0 - 2.0) * 1 * CONTRACT_MULTIPLIER
+    actual_pnl = settlement_pnl("call", 500, 1, "long", 2.0, 510.0)
+    assert actual_pnl == expected_pnl
+
+
 class TestIntrinsicValue:
     def test_call_in_the_money(self) -> None:
         assert intrinsic_value("call", strike=500.0, underlying_price=510.0) == pytest.approx(10.0)

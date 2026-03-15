@@ -30,6 +30,18 @@ class TradierClient:
             "Authorization": f"Bearer {token}",
             "Accept": "application/json",
         }
+        self._session: aiohttp.ClientSession | None = None
+
+    @property
+    async def session(self) -> aiohttp.ClientSession:
+        if self._session is None or self._session.closed:
+            self._session = aiohttp.ClientSession(base_url=self.base_url, headers=self._headers)
+        return self._session
+
+    async def close(self) -> None:
+        if self._session is not None:
+            await self._session.close()
+            self._session = None
 
     # ------------------------------------------------------------------
     # Quotes
@@ -41,14 +53,14 @@ class TradierClient:
         Returns ``None`` if the symbol is not found or the API call fails.
         """
         try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(
-                    f"{self.base_url}/markets/quotes",
-                    headers=self._headers,
-                    params={"symbols": symbol, "greeks": "false"},
-                ) as resp:
-                    resp.raise_for_status()
-                    data = await resp.json()
+            session = await self._get_session()
+            async with session.get(
+                f"{self.base_url}/markets/quotes",
+                headers=self._headers,
+                params={"symbols": symbol, "greeks": "false"},
+            ) as resp:
+                resp.raise_for_status()
+                data = await resp.json()
             quotes = data.get("quotes", {}).get("quote")
             if isinstance(quotes, list):
                 return quotes[0] if quotes else None
@@ -79,14 +91,13 @@ class TradierClient:
     async def get_expirations(self, symbol: str) -> list[str]:
         """Return available option expiration dates for *symbol* (YYYY-MM-DD)."""
         try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(
-                    f"{self.base_url}/markets/options/expirations",
-                    headers=self._headers,
-                    params={"symbol": symbol, "includeAllRoots": "true"},
-                ) as resp:
-                    resp.raise_for_status()
-                    data = await resp.json()
+            async with self.session.get(
+                f"{self.base_url}/markets/options/expirations",
+                headers=self._headers,
+                params={"symbol": symbol, "includeAllRoots": "true"},
+            ) as resp:
+                resp.raise_for_status()
+                data = await resp.json()
             dates = data.get("expirations", {}).get("date", [])
             if isinstance(dates, str):
                 return [dates]
@@ -121,22 +132,19 @@ class TradierClient:
         if option_type:
             params["optionType"] = option_type
         try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(
-                    f"{self.base_url}/markets/options/chains",
-                    headers=self._headers,
-                    params=params,
-                ) as resp:
-                    resp.raise_for_status()
-                    data = await resp.json()
+            async with self.session.get(
+                f"{self.base_url}/markets/options/chains",
+                headers=self._headers,
+                params=params,
+            ) as resp:
+                resp.raise_for_status()
+                data = await resp.json()
             options = data.get("options", {}).get("option", [])
             if isinstance(options, dict):
                 return [options]
             return options or []
         except Exception as exc:
-            logger.warning(
-                "get_options_chain(%s, %s) failed: %s", symbol, expiration, exc
-            )
+            logger.warning("get_options_chain(%s, %s) failed: %s", symbol, expiration, exc)
             return []
 
     async def get_option_quote(
@@ -172,13 +180,13 @@ class TradierClient:
         Returns an empty dict on failure.
         """
         try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(
-                    f"{self.base_url}/markets/clock",
-                    headers=self._headers,
-                ) as resp:
-                    resp.raise_for_status()
-                    data = await resp.json()
+            session = await self._get_session()
+            async with session.get(
+                f"{self.base_url}/markets/clock",
+                headers=self._headers,
+            ) as resp:
+                resp.raise_for_status()
+                data = await resp.json()
             return data.get("clock", {})
         except Exception as exc:
             logger.warning("get_market_clock() failed: %s", exc)

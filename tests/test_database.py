@@ -1,6 +1,5 @@
 """Tests for thetamax.database — async SQLite layer."""
 
-import asyncio
 
 import pytest
 import pytest_asyncio
@@ -116,9 +115,7 @@ class TestPositions:
 
     async def test_close_position(self, db: Database) -> None:
         _, player_id = await self._setup_player(db)
-        pos_id = await db.create_position(
-            player_id, "put", 540.0, 1, "long", 1.50, "2024-01-08"
-        )
+        pos_id = await db.create_position(player_id, "put", 540.0, 1, "long", 1.50, "2024-01-08")
         await db.close_position(pos_id, 3.00, 150.0)
 
         positions = await db.get_positions(player_id, status="closed")
@@ -128,9 +125,7 @@ class TestPositions:
 
     async def test_settle_position(self, db: Database) -> None:
         _, player_id = await self._setup_player(db)
-        pos_id = await db.create_position(
-            player_id, "call", 550.0, 1, "short", 2.00, "2024-01-08"
-        )
+        pos_id = await db.create_position(player_id, "call", 550.0, 1, "short", 2.00, "2024-01-08")
         await db.settle_position(pos_id, 548.0, 200.0)
 
         positions = await db.get_positions(player_id, status="expired")
