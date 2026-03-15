@@ -145,3 +145,37 @@ class TestTodayIso:
         assert len(result) == 10
         assert result[4] == "-"
         assert result[7] == "-"
+
+
+class TestNextMarketOpen:
+    def test_before_open_returns_today_open(self) -> None:
+        # Monday 08:00 ET — before market opens
+        dt = _make_dt(0, 8, 0)
+        with patch("thetamax.market.now_et", return_value=dt):
+            next_open = next_market_open()
+        # Next open on a trading day before open should be today's open
+        assert next_open.date() == dt.date()
+        assert next_open.time() == MARKET_OPEN_TIME
+        assert next_open.tzinfo == ET
+
+    def test_after_close_returns_next_trading_day_open(self) -> None:
+        # Monday 17:00 ET — after market close
+        dt = _make_dt(0, 17, 0)
+        with patch("thetamax.market.now_et", return_value=dt):
+            next_open = next_market_open()
+        # Expect Tuesday's market open
+        expected = _make_dt(1, MARKET_OPEN_TIME.hour, MARKET_OPEN_TIME.minute)
+        assert next_open.date() == expected.date()
+        assert next_open.time() == MARKET_OPEN_TIME
+        assert next_open.tzinfo == ET
+
+    def test_after_friday_close_skips_weekend_to_monday_open(self) -> None:
+        # Friday 17:00 ET — after market close
+        dt = _make_dt(4, 17, 0)
+        with patch("thetamax.market.now_et", return_value=dt):
+            next_open = next_market_open()
+        # Expect next Monday's market open (7 days after base Monday 2024-01-08)
+        expected = _make_dt(7, MARKET_OPEN_TIME.hour, MARKET_OPEN_TIME.minute)
+        assert next_open.date() == expected.date()
+        assert next_open.time() == MARKET_OPEN_TIME
+        assert next_open.tzinfo == ET
