@@ -21,7 +21,7 @@ from thetamax.config import config
 from thetamax.market import today_iso
 
 if TYPE_CHECKING:
-    from bot import ThetaMaxBot
+    from thetamax.__main__ import ThetaMaxBot
 
 
 def _is_admin(interaction: discord.Interaction) -> bool:
