@@ -1,4 +1,4 @@
-# 0DTE Options Poker Discord Bot
+# ThetaMax
 
 A Discord bot for running daily 0DTE options poker tournaments with fake bankrolls, live Tradier option quotes, and SQLite persistence.
 
@@ -17,7 +17,7 @@ A Discord bot for running daily 0DTE options poker tournaments with fake bankrol
 uv sync
 cp .env.example .env
 # set DISCORD_TOKEN + TRADIER_TOKEN
-uv run options-poker-bot
+uv run thetamax
 ```
 
 ## Environment variables
@@ -27,7 +27,7 @@ uv run options-poker-bot
 | `DISCORD_TOKEN` | yes | - | Discord bot token |
 | `TRADIER_TOKEN` | yes | - | Tradier API token |
 | `TRADIER_BASE_URL` | no | `https://api.tradier.com` | Use `https://sandbox.tradier.com` for sandbox |
-| `DATABASE_URL` | no | `options_poker.db` | SQLite database path |
+| `DATABASE_URL` | no | `thetamax.db` | SQLite database path |
 
 ## Slash commands
 

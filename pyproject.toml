@@ -1,5 +1,5 @@
 [project]
-name = "options-poker-bot"
+name = "thetamax"
 version = "0.1.0"
 description = "Discord bot for 0DTE options poker"
 readme = "README.md"
@@ -11,7 +11,7 @@ dependencies = [
 ]
 
 [project.scripts]
-options-poker-bot = "options_poker_bot.main:main"
+thetamax = "thetamax.main:main"
 
 [tool.uv]
 package = true

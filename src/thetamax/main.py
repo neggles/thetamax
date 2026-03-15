@@ -4,7 +4,7 @@ import asyncio
 
 from dotenv import load_dotenv
 
-from .bot import BotDeps, OptionsPokerBot
+from .bot import BotDeps, ThetaMaxBot
 from .config import Settings
 from .db import Database
 from .pricing import TradierClient
@@ -16,7 +16,7 @@ def main() -> None:
 
     db = Database(settings.database_url)
     pricing = TradierClient(token=settings.tradier_token, base_url=settings.tradier_base_url)
-    bot = OptionsPokerBot(BotDeps(db=db, pricing=pricing))
+    bot = ThetaMaxBot(BotDeps(db=db, pricing=pricing))
 
     asyncio.run(bot.start(settings.discord_token))
 

@@ -17,7 +17,7 @@ class Settings:
         discord_token = os.getenv("DISCORD_TOKEN", "")
         tradier_token = os.getenv("TRADIER_TOKEN", "")
         tradier_base_url = os.getenv("TRADIER_BASE_URL", "https://api.tradier.com")
-        database_url = os.getenv("DATABASE_URL", "options_poker.db")
+        database_url = os.getenv("DATABASE_URL", "thetamax.db")
 
         if not discord_token:
             raise ValueError("DISCORD_TOKEN is required")
